@@ -1,0 +1,40 @@
+/* resources/css/app.css */
+/* resources/css/app.css o donde gestiones tus estilos globales
+/* ... tus otros estilos ... */
+.glider-contain {
+    /* Ajusta esta altura mínima para que coincida más o menos
+       con la altura que tenía tu spinner o la altura esperada del carrusel.
+       Esto es un ejemplo. */
+    min-height: 300px;
+    /* Un color de fondo muy suave (Tailwind gray-50 o similar) */
+    background-color: #f9fafb;
+    /* Puedes añadir otras propiedades si quieres, como un padding si el spinner lo tenía */
+}
+
+.glider-contain .glider li > article > figure {
+    display: block;
+    aspect-ratio: 4 / 3; /* O 16/9, 1/1, la proporción REAL de tus imágenes */
+    overflow: hidden;
+    background-color: #e9e9e9; /* Un color de fondo placeholder (opcional) */
+}
+
+.glider-contain .glider li > article > figure img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* O 'contain', según prefieras */
+    display: block;
+}
+
+/* resources/css/app.css o donde gestiones tus estilos globales */
+
+.glider-contain ul.glider {
+    opacity: 0;
+    /* Evita que ocupe espacio o sea interactuable mientras está invisible si es necesario */
+    /* visibility: hidden; */
+    transition: opacity 0.25s ease-in-out; /* Para una aparición suave */
+}
+
+.glider-contain ul.glider.glider-initialized-custom {
+    opacity: 1;
+    /* visibility: visible; */
+}

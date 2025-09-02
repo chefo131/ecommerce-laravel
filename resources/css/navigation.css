@@ -1,0 +1,69 @@
+/* c:\xampp\htdocs\laravel\ecommerce\resources\css\navigation.css */
+.navbar {
+    height: calc(100vh - 4rem);
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(128, 128, 128, 0.25);
+}
+
+.logo-container {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 15px;
+    /* Espacio entre Categorías y Logo */
+}
+
+.logo-image {
+    max-height: 24px;
+    width: auto;
+    /* Mantener proporción */
+}
+
+.search-container {
+    flex-grow: 1;
+    /* Expande correctamente pero sin ocupar todo */
+    flex-basis: auto;
+    /* Ajusta su tamaño dinámicamente */
+    max-width: 80%;
+    /* Limita su expansión para que no empuje otros elementos */
+    margin-left: 15px;
+    /* Espacio entre logo y buscador */
+    margin-right: auto;
+    /* Mantiene espacio para carrito/login/register */
+    display: flex;
+    align-items: center;
+    /* Asegura alineación vertical */
+}
+
+.flex-container {
+    display: flex;
+    align-items: center;
+    /* Asegura alineación vertical */
+    justify-content: space-between;
+    /* Mantiene distribución izquierda-derecha */
+    flex-wrap: nowrap;
+    /* Evita que los elementos bajen */
+    width: 100%;
+    height: 4rem;
+    padding: 0 15px;
+}
+
+.btn {
+    display: inline-block;
+
+    text-align: center;
+
+    padding: 8px 12px;
+    border-radius: 5px;
+    border: 1px solid limegreen;
+    background: lightgray;
+    text-decoration: none;
+    color: black;
+}

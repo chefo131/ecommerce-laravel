@@ -1,0 +1,123 @@
+/* c:\xampp\htdocs\laravel\ecommerce\resources\css\app.css */
+/* Oculta elementos con x-cloak antes de que Alpine los procese */
+/* [x-cloak] { 
+    display: none !important;
+} */
+
+@import 'tailwindcss';
+@import '../../vendor/livewire/flux/dist/flux.css';
+@import './container.css';
+@import './navigation.css';
+@import './main-header.css';
+@import './select-color.css';
+@import './glider.css';
+@import './scroll-cart.css';
+@import './icon.css';
+
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
+@source '../../vendor/livewire/flux/stubs/**/*.blade.php';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-sans:
+        'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+    --color-zinc-50: #fafafa;
+    --color-zinc-100: #f5f5f5;
+    --color-zinc-200: #e5e5e5;
+    --color-zinc-300: #d4d4d4;
+    --color-zinc-400: #a3a3a3;
+    --color-zinc-500: #737373;
+    --color-zinc-600: #525252;
+    --color-zinc-700: #404040;
+    --color-zinc-800: #262626;
+    --color-zinc-900: #171717;
+    --color-zinc-950: #0a0a0a;
+
+    --color-accent: var(--color-neutral-800);
+    --color-accent-content: var(--color-neutral-800);
+    --color-accent-foreground: var(--color-white);
+}
+
+@layer theme {
+    .dark {
+        --color-accent: var(--color-white);
+        --color-accent-content: var(--color-white);
+        --color-accent-foreground: var(--color-neutral-800);
+    }
+}
+
+@layer base {
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-gray-200, currentColor);
+    }
+}
+
+[data-flux-field]:not(ui-radio, ui-checkbox) {
+    @apply grid gap-2;
+}
+
+[data-flux-label] {
+    @apply !mb-0 !leading-tight;
+}
+
+input:focus[data-flux-control],
+textarea:focus[data-flux-control],
+select:focus[data-flux-control] {
+    @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
+}
+
+/* \[:where(&)\]:size-4 {
+    @apply size-4;
+} */
+
+/* --- Arreglos para FlexSlider --- */
+/* Asegura que el contenedor de miniaturas se comporte como un flex container y envuelva los elementos */
+.flex-control-nav.flex-control-thumbs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 10px; /* Espacio horizontal y vertical entre miniaturas */
+    margin-top: 1rem;
+    padding: 0;
+    max-width: 100%; /* Aseguramos que el contenedor no se desborde */
+    list-style: none;
+}
+
+/* Estilo para cada elemento de la lista de miniaturas */
+.flex-control-nav.flex-control-thumbs li {
+    /* Usamos un tamaño fijo para las miniaturas en lugar de un porcentaje.
+       Esto es más robusto y predecible, independientemente de cuántas imágenes haya.
+       Usamos !important para asegurarnos de que este estilo gane cualquier conflicto. */
+    width: 80px !important;
+    height: 80px !important;
+    flex-shrink: 0; /* Evita que las miniaturas se encojan */
+    margin: 0 !important; /* Forzamos a que no haya márgenes extraños */
+    cursor: pointer;
+}
+
+/* Estilo para las imágenes de las miniaturas */
+.flex-control-nav.flex-control-thumbs img {
+    width: 100%;
+    height: 100%; /* Asegura que la imagen llene la altura del 'li' */
+    object-fit: cover; /* Recorta la imagen para que encaje sin distorsionarse */
+    display: block;
+    opacity: 0.7;
+    transition: opacity 0.2s ease-in-out;
+    border: 2px solid transparent;
+}
+
+/* Estilo para la miniatura activa o al pasar el ratón */
+.flex-control-nav.flex-control-thumbs .flex-active img,
+.flex-control-nav.flex-control-thumbs li:hover img {
+    opacity: 1;
+    border-color: #84cc16; /* lime-500 */
+}

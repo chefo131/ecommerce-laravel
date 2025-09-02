@@ -1,0 +1,31 @@
+.container {
+    max-width: 80rem; /* Equivalente a max-w-7xl */
+    margin-left: auto;
+    margin-right: auto; /* mx-auto */
+    padding-left: 1rem; /* px-4 */
+    padding-right: 1rem; /* px-4 */
+}
+
+/* Modo oscuro */
+@media (prefers-color-scheme: dark) {
+    .container {
+        border-bottom: 1px solid rgb(63, 63, 70);
+        background-color: rgb(24, 24, 27);
+    }
+}
+
+@media (min-width: 640px) {
+    .container {
+        padding-left: 1.5rem; /* sm:px-6 */
+        padding-right: 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .container {
+        padding-left: 2rem; /* lg:px-8 */
+        padding-right: 2rem;
+    }
+}
+
+
