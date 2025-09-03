@@ -41,45 +41,6 @@
     <div class="mt-12">
         <h2 class="mb-4 text-2xl font-bold text-gray-700 dark:text-white">Reseñas del Producto</h2>
 
-        {{-- BLOQUE DE DEPURACIÓN (NIVEL 2) --}}
-        @auth
-            <div
-                class="my-4 rounded-lg border-2 border-purple-500 bg-purple-100 p-4 dark:border-purple-400 dark:bg-purple-900/30">
-                <h3 class="font-bold text-purple-800 dark:text-purple-200">--- ZONA DE DEPURACIÓN (NIVEL 2) ---</h3>
-                <p class="text-sm text-purple-700 dark:text-purple-300">Usuario autenticado: {{ auth()->user()->name }} (ID:
-                    <strong class="text-lg">{{ auth()->user()->id }}</strong>)
-                </p>
-                <hr class="my-2 border-purple-300">
-                <p class="text-sm text-purple-700 dark:text-purple-300">Buscando pedidos para el usuario con ID: <strong
-                        class="text-lg">{{ auth()->user()->id }}</strong></p>
-                <p class="text-sm text-purple-700 dark:text-purple-300">Condición: `status` debe ser
-                    `{{ \App\Models\Order::ENTREGADO }}`</p>
-                <p class="text-sm text-purple-700 dark:text-purple-300">Condición: El pedido debe contener el producto con
-                    ID `{{ $product->id }}`</p>
-                <hr class="my-2 border-purple-300">
-                @php
-                    $orderCount = auth()
-                        ->user()
-                        ->orders()
-                        ->where('status', \App\Models\Order::ENTREGADO)
-                        ->whereHas('products', fn($query) => $query->where('product_id', $product->id))
-                        ->count();
-                @endphp
-                <p class="font-semibold text-purple-800 dark:text-purple-200">Resultado de la búsqueda: <strong
-                        class="text-lg">{{ $orderCount }}</strong> órdenes encontradas que cumplen todas las condiciones.
-                </p>
-
-                @if ($orderCount == 0)
-                    <p class="mt-2 text-xs text-purple-600 dark:text-purple-400">
-                        <strong>Pista:</strong> Si el resultado es 0, ve a phpMyAdmin, busca la tabla `orders`, encuentra la
-                        orden #51 y comprueba si el valor en la columna `user_id` es realmente `{{ auth()->user()->id }}`.
-                        ¡Es muy probable que no coincidan!
-                    </p>
-                @endif
-                <h3 class="mt-2 font-bold text-purple-800 dark:text-purple-200">--- FIN DE DEPURACIÓN ---</h3>
-            </div>
-        @endauth
-
         {{-- FORMULARIO PARA AÑADIR RESEÑA (si el usuario puede) --}}
         @auth
             @if ($product->canBeReviewed())
