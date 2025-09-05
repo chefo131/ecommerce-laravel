@@ -187,7 +187,6 @@ class CreateOrder extends Component
         // El stock ahora se descuenta DESPUÉS de que el pago se haya confirmado.
         // Hemos movido esta lógica a PaymentController para evitar dobles descuentos y centralizar el proceso.
 
-        Cart::destroy();
         return redirect()->route('orders.payment', $order);
     }
 

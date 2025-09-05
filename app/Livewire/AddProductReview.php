@@ -40,8 +40,8 @@ class AddProductReview extends Component
             'comment' => $this->comment,
             'rating' => $this->rating,
             'user_id' => auth()->id(),
-            // Por defecto, las reseñas pueden necesitar aprobación.
-            // Asumimos que el estado por defecto en la BD es 'pendiente' o similar.
+            // ¡Añadido! Asegura que la reseña entre en estado pendiente.
+            'status' => Review::PENDIENTE,
         ]);
 
         // Limpiamos el formulario

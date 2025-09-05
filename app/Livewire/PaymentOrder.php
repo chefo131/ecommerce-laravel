@@ -22,7 +22,9 @@ class PaymentOrder extends Component
         $this->order = $order;
         // Usamos la política para asegurar que el usuario solo puede ver sus propias órdenes.
         $this->authorize('view', $order);
-        $this->items = Cart::content();
+        // ¡SOLUCIÓN! En lugar de leer del carrito global (que puede estar vacío),
+        // leemos los productos del campo 'content' de la propia orden.
+        $this->items = $this->order->content;
     }
 
     /**
@@ -37,24 +39,43 @@ class PaymentOrder extends Component
 
         // 1. Asociamos los productos del carrito a la orden y descontamos el stock.
         // ESTE ES EL PASO CRUCIAL QUE FALTABA.
-        foreach ($this->items as $item) {
+        // Usamos $this->order->content para asegurar que procesamos los productos guardados en la orden.
+        foreach ($this->order->content as $item) {
+            // ¡CORRECCIÓN! Como $this->order->content es un array (por el 'cast' en el modelo Order),
+            // cada $item es un array asociativo, no un objeto. Debemos usar la sintaxis de array ($item['...'])
+            // en lugar de la de objeto ($item->...). Este era el origen del error "Attempt to read property on array".
+
             // Asociamos el producto en la tabla pivote 'order_product'
-            $this->order->products()->attach($item->id, [
-                'quantity' => $item->qty,
-                'price' => $item->price,
+            $this->order->products()->attach($item['id'], [
+                'quantity' => $item['qty'],
+                'price' => $item['price'],
             ]);
 
-            // Descontamos el stock de la variante correcta
-            if ($item->options->size_id && $item->options->color_id) {
+            // Descontamos el stock de la variante correcta de forma segura
+            if (!empty($item['options']['size_id']) && !empty($item['options']['color_id'])) {
                 // Producto con talla y color
-                $size = Size::find($item->options->size_id);
-                $size->colors()->find($item->options->color_id)->pivot->decrement('quantity', $item->qty);
-            } elseif ($item->options->color_id) {
+                $size = Size::find($item['options']['size_id']);
+                if ($size) {
+                    $color = $size->colors()->find($item['options']['color_id']);
+                    if ($color && $color->pivot) {
+                        $color->pivot->decrement('quantity', $item['qty']);
+                    }
+                }
+            } elseif (!empty($item['options']['color_id'])) {
                 // Producto solo con color
-                Product::find($item->id)->colors()->find($item->options->color_id)->pivot->decrement('quantity', $item->qty);
+                $product = Product::find($item['id']);
+                if ($product) {
+                    $color = $product->colors()->find($item['options']['color_id']);
+                    if ($color && $color->pivot) {
+                        $color->pivot->decrement('quantity', $item['qty']);
+                    }
+                }
             } else {
                 // Producto simple
-                Product::find($item->id)->decrement('quantity', $item->qty);
+                $product = Product::find($item['id']);
+                if ($product) {
+                    $product->decrement('quantity', $item['qty']);
+                }
             }
         }
 

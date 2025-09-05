@@ -25,6 +25,7 @@ use App\Livewire\Admin\DepartmentComponent;
 use App\Livewire\Admin\CityComponent;
 use App\Livewire\Admin\DistrictComponent;
 use App\Livewire\Admin\UserComponent;
+use App\Livewire\Admin\ManageReviews;
 use App\Livewire\CategoryFilter;
 use App\Livewire\Admin\EditUser;
 
@@ -56,7 +57,10 @@ Route::middleware('auth')->group(function(){
     Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
 
     Route::get('orders/{order}/payment', [OrderController::class, 'payment'])->name('orders.payment');
-
+    // ¡LÍNEA ELIMINADA!
+    // Esta ruta era incorrecta. Estaba en el grupo de rutas de usuario normal y apuntaba
+    // al controlador equivocado (OrderController en lugar de AdminOrderController).
+    // Esto causaba que la lógica para rellenar 'order_product' no se ejecutara. La ruta correcta ya existe en el grupo de admin.
     Route::post('/orders/{order}/create-payment', [PaymentController::class, 'createPayment'])->name('payment.create');
 
     Route::post('/orders/{order}/capture-payment', [PaymentController::class, 'capturePayment'])->name('payment.capture');
@@ -66,6 +70,7 @@ Route::middleware('auth')->group(function(){
 
     // Nueva ruta para la página de éxito del pago
     Route::get('orders/{order}/success', [OrderController::class, 'success'])->name('orders.success');
+
 });
 
 Route::get('/cart', function () {
@@ -127,6 +132,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     // Ruta para la gestión de usuarios (CRUD)
     Route::get('users', \App\Livewire\Admin\UserComponent::class)->name('users.index');
     Route::get('users/{user}/edit', EditUser::class)->name('users.edit');
+
+    // ¡AQUÍ ES DONDE DEBE ESTAR! Dentro del grupo de admin.
+    Route::get('reviews', ManageReviews::class)->name('reviews.index');
 });
 
 

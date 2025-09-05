@@ -85,11 +85,24 @@
                 <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">Resumen de la Compra</h3>
                 <ul class="divide-y divide-gray-200 dark:divide-gray-700">
                     @foreach ($items as $item)
+                        @php
+                            // Buscamos el producto para poder enlazar a su página.
+                            // Nota: En una aplicación a gran escala, sería más óptimo precargar estos productos en el controlador.
+                            $product = \App\Models\Product::find($item['id']);
+                        @endphp
                         <li class="flex items-center py-4">
-                            <img class="h-20 w-20 rounded-md object-cover" src="{{ asset($item['options']['image']) }}"
-                                alt="{{ $item['name'] }}">
+                            <a href="{{ $product ? route('products.show', $product) : '#' }}">
+                                <img class="h-20 w-20 rounded-md object-cover"
+                                    src="{{ asset($item['options']['image']) }}" alt="{{ $item['name'] }}">
+                            </a>
                             <div class="ml-4 flex-1">
-                                <p class="font-semibold text-gray-800 dark:text-gray-100">{{ $item['name'] }}</p>
+                                <p class="font-semibold text-gray-800 dark:text-gray-100">
+                                    {{-- ¡SOLUCIÓN! Añadimos el enlace al producto. --}}
+                                    <a href="{{ $product ? route('products.show', $product) : '#' }}"
+                                        class="hover:text-lime-600 hover:underline dark:hover:text-lime-400">
+                                        {{ $item['name'] }}
+                                    </a>
+                                </p>
                                 <div class="text-sm text-gray-500 dark:text-gray-400">
                                     @if (isset($item['options']['color']) && $item['options']['color'])
                                         <span>Color: {{ __($item['options']['color']) }}</span>

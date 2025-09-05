@@ -151,7 +151,10 @@ class Product extends Model implements HasMedia
         // Lo cambiamos para que compruebe explícitamente el estado "Entregado" (que asumimos es 4).
         // Lo ideal sería usar una constante del modelo Order, como Order::ENTREGADO.
         return auth()->user()->orders()
-            ->where('status', Order::ENTREGADO) // Usamos la constante para un código más limpio y robusto.
+            // ¡CORRECCIÓN! La columna que guarda el estado en la tabla 'orders' se llama 'status'.
+            // La consulta anterior usaba 'order_status_id' por error, causando el fallo "Column not found".
+            // La corregimos para que apunte a la columna correcta.
+            ->where('status', Order::ENTREGADO)
             ->whereHas('products', fn($query) => $query->where('product_id', $this->id))
             ->exists();
 

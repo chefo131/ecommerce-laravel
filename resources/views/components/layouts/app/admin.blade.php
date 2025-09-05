@@ -87,6 +87,10 @@
                                 class="{{ request()->routeIs('admin.users.*') ? 'border-lime-500 text-gray-900 dark:text-gray-100' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }} inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium">
                                 Usuarios
                             </a>
+                            <a href="{{ route('admin.reviews.index') }}"
+                                class="{{ request()->routeIs('admin.reviews.index') ? 'border-lime-500 text-gray-900 dark:text-gray-100' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }} inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium">
+                                Reseñas
+                            </a>
                         </div>
 
                         <!-- Menú de Usuario y Configuración -->
@@ -182,6 +186,7 @@
             <!-- Menú de navegación responsive -->
             <div :class="{ 'block': open, 'hidden': !open }" class="hidden sm:hidden">
                 <div class="space-y-1 pb-3 pt-2">
+                    {{-- ¡Código limpio! Usamos nuestro componente x-responsive-nav-link para todo --}}
                     <x-responsive-nav-link :href="route('admin.index')" :active="request()->routeIs('admin.index')">
                         Productos
                     </x-responsive-nav-link>
@@ -199,6 +204,10 @@
                     </x-responsive-nav-link>
                     <x-responsive-nav-link href="{{ route('admin.users.index') }}" :active="request()->routeIs('admin.users.*')">
                         Usuarios
+                    </x-responsive-nav-link>
+                    {{-- ¡Y aquí añadimos el enlace que faltaba, usando el mismo componente! --}}
+                    <x-responsive-nav-link href="{{ route('admin.reviews.index') }}" :active="request()->routeIs('admin.reviews.index')">
+                        Reseñas
                     </x-responsive-nav-link>
                 </div>
 

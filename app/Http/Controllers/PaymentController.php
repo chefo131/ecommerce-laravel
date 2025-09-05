@@ -92,7 +92,16 @@ class PaymentController extends Controller
         // No necesitamos usar json_decode, que es lo que estaba causando el error.
         $items = $order->content;
 
+        // 2. Asociar productos y descontar stock
         foreach ($items as $item) {
+            // ¡SOLUCIÓN! Asociamos los productos a la orden en la tabla pivote 'order_product'.
+            // Este paso es crucial y faltaba en el flujo de pago de PayPal, lo que hacía
+            // que la tabla pivote estuviera vacía y las reseñas no funcionaran.
+            $order->products()->attach($item->id, [
+                'quantity' => $item->qty,
+                'price' => $item->price,
+            ]);
+
             // Buscamos el producto para acceder a sus relaciones
             $product = Product::find($item->id);
 

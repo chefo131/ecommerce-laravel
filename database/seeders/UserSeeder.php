@@ -32,6 +32,19 @@ class UserSeeder extends Seeder
         // ¡El paso clave! Asignamos el rol de administrador al usuario.
         $user->assignRole($roleAdmin);
 
+        // --- Creación de un usuario de prueba FIJO para el rol 'comprador' ---
+        // Esto nos da un usuario con credenciales conocidas para hacer pruebas de login.
+        $compradorUser = User::firstOrCreate(
+            ['email' => 'comprador@example.com'], // Atributos para buscar
+            [
+                'name' => 'Comprador de Prueba',
+                'password' => Hash::make('password'), // Usamos 'password' para consistencia
+            ]
+        );
+
+        // Asignamos el rol de comprador
+        $compradorUser->assignRole($roleComprador);
+
         // --- Creación de usuarios de prueba ---
         // Creamos 50 usuarios de prueba y les asignamos el rol de 'comprador'.
         // El método 'each' nos permite ejecutar una acción por cada usuario creado.

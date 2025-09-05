@@ -55,8 +55,26 @@ class OrderController extends Controller
             'status' => 'required|in:1,2,3,4,5'
         ]);
 
+          $oldStatus = $order->status;
+        $newStatus = $request->status;
+
+        // ¡AQUÍ ESTÁ LA LÓGICA INTELIGENTE!
+        // Si la orden estaba 'Pendiente' (1) y ahora pasa a un estado superior (Pagado, Enviado, etc.)
+        // y además la tabla pivote 'order_product' está vacía, la poblamos.
+        // Esto soluciona el problema de que las reseñas no se puedan crear si el admin procesa la orden manualmente.
+        if ($oldStatus == Order::PENDIENTE && $newStatus > Order::PENDIENTE && $order->products()->count() == 0) {
+            $items = $order->content; // Obtenemos los productos del campo JSON 'content'
+            foreach ($items as $item) {
+                $order->products()->attach($item->id, [
+                    'quantity' => $item->qty,
+                    'price' => $item->price,
+                ]);
+            }
+        }
+
+
         // Actualizamos el estado de la orden.
-        $order->status = $request->status;
+         $order->status = $newStatus;
         $order->save();
 
         // Redirigimos de vuelta a la página de detalle con un mensaje de éxito.
