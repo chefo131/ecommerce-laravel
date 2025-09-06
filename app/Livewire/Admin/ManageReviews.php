@@ -2,9 +2,11 @@
 
 namespace App\Livewire\Admin;
 
+use App\Mail\ReviewApproved;
 use App\Models\Review;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Illuminate\Support\Facades\Mail;
 
 class ManageReviews extends Component
 {
@@ -27,6 +29,9 @@ class ManageReviews extends Component
     {
         $review->status = Review::APROBADO;
         $review->save();
+
+        // ¡Aquí enviamos el email al usuario!
+        Mail::to($review->user)->send(new ReviewApproved($review));
 
         $this->dispatch('swal', [
             'icon' => 'success',

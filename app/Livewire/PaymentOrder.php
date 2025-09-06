@@ -2,6 +2,8 @@
 
 namespace App\Livewire;
 
+use App\Mail\OrderConfirmation;
+use Illuminate\Support\Facades\Mail;
 use App\Models\Order;
 use App\Models\Size;
 use App\Models\Color;
@@ -83,6 +85,9 @@ class PaymentOrder extends Component
         $this->order->status = Order::PAGADO;
         $this->order->payment_id = $paymentId; // Guardamos el ID de la transacción si existe
         $this->order->save();
+
+        // ¡Enviamos el email de confirmación al usuario!
+        Mail::to($this->order->user)->send(new OrderConfirmation($this->order));
 
         // 3. Vaciamos el carrito de compras
         Cart::destroy();
