@@ -8,7 +8,7 @@ use App\Models\Category;
 use App\Models\Order;
 use Illuminate\Support\Facades\Auth;
 
-class welcomeController extends Controller
+class WelcomeController extends Controller
 {
     public $banner;
     public function __invoke(){

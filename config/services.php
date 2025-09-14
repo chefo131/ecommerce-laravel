@@ -13,10 +13,12 @@ return [
     | a conventional file to locate the various service credentials.
     |
     */
+    // ... otras configuraciones de servicios
 
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],
+    'payment_provider' => env('PAYMENT_PROVIDER', 'paypal'),
 
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),

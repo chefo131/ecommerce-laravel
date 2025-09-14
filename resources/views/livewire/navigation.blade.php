@@ -70,7 +70,7 @@
                             <flux:profile
                                 class="flex h-10 w-10 py-2 -ml-2 cursor-pointer items-center justify-center rounded-md border border-gray-300 bg-gray-300 text-sm font-semibold text-gray-700 hover:border-lime-500 focus:outline-none dark:border-gray-500 dark:bg-gray-600 dark:text-gray-100 dark:hover:border-lime-400"
                                 :name="auth()->user()->name" :initials="auth()->user()->initials()"
-                                avatar="{{ asset('storage/images/avatar.jpg') }}" />
+                                avatar="{{ asset('img/avatar.jpg') }}" />
                             {{-- blade-formatter-enable --}}
 
                             </x-slot:trigger>

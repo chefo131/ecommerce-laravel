@@ -34,21 +34,25 @@ class PaymentOrder extends Component
      *
      * @param string|null $paymentId El ID de la transacción de PayPal (opcional).
      */
-    public function payOrder($paymentId = null)
+    public function payOrder(Order $order = null, $paymentId = null)
     {
+        // Si no se pasa una orden, usamos la que está en la propiedad del componente.
+        // Esto mantiene la compatibilidad con el botón "dummy".
+        $orderToProcess = $order ?? $this->order;
+
         // Autorizamos que el usuario pueda pagar esta orden
-        $this->authorize('payment', $this->order);
+        $this->authorize('payment', $orderToProcess);
 
         // 1. Asociamos los productos del carrito a la orden y descontamos el stock.
         // ESTE ES EL PASO CRUCIAL QUE FALTABA.
-        // Usamos $this->order->content para asegurar que procesamos los productos guardados en la orden.
-        foreach ($this->order->content as $item) {
+        // Usamos $orderToProcess->content para asegurar que procesamos los productos guardados en la orden.
+        foreach ($orderToProcess->content as $item) {
             // ¡CORRECCIÓN! Como $this->order->content es un array (por el 'cast' en el modelo Order),
             // cada $item es un array asociativo, no un objeto. Debemos usar la sintaxis de array ($item['...'])
             // en lugar de la de objeto ($item->...). Este era el origen del error "Attempt to read property on array".
 
             // Asociamos el producto en la tabla pivote 'order_product'
-            $this->order->products()->attach($item['id'], [
+            $orderToProcess->products()->attach($item['id'], [
                 'quantity' => $item['qty'],
                 'price' => $item['price'],
             ]);
@@ -82,18 +86,18 @@ class PaymentOrder extends Component
         }
 
         // 2. Actualizamos el estado de la orden a 'PAGADO'
-        $this->order->status = Order::PAGADO;
-        $this->order->payment_id = $paymentId; // Guardamos el ID de la transacción si existe
-        $this->order->save();
+        $orderToProcess->status = Order::PAGADO;
+        $orderToProcess->transaction_id = $paymentId; // Guardamos el ID de la transacción si existe
+        $orderToProcess->save();
 
         // ¡Enviamos el email de confirmación al usuario!
-        Mail::to($this->order->user)->send(new OrderConfirmation($this->order));
+        Mail::to($orderToProcess->user)->send(new OrderConfirmation($orderToProcess));
 
         // 3. Vaciamos el carrito de compras
         Cart::destroy();
 
         // 4. Redirigimos a la página de éxito
-        return redirect()->route('orders.success', $this->order);
+        return redirect()->route('orders.success', $orderToProcess);
     }
 
     public function render()

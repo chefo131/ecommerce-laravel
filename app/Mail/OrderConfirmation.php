@@ -14,13 +14,24 @@ class OrderConfirmation extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public Order $order;
+    /**
+     * La instancia del pedido.
+     *
+     * @var \App\Models\Order
+     */
+    public $order;
 
+    /**
+     * Create a new message instance.
+     */
     public function __construct(Order $order)
     {
         $this->order = $order;
     }
 
+    /**
+     * Get the message envelope.
+     */
     public function envelope(): Envelope
     {
         return new Envelope(
@@ -28,6 +39,9 @@ class OrderConfirmation extends Mailable
         );
     }
 
+    /**
+     * Get the message content definition.
+     */
     public function content(): Content
     {
         return new Content(

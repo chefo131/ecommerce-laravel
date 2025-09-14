@@ -160,45 +160,62 @@
 
 {{-- ¡AQUÍ EMPIEZA LA MAGIA! --}}
 @push('scripts')
-    {{-- 1. Incluimos el SDK de PayPal con nuestro Client ID --}}
-    {{-- El parámetro 'disable-funding=card' OCULTA el botón de pago con tarjeta.
-         Para que aparezca, simplemente lo quitamos. El SDK es inteligente y lo mostrará por defecto. --}}
-    @if (config('services.paypal.client_id') && config('services.paypal.secret'))
-        <script src="https://www.paypal.com/sdk/js?client-id={{ config('services.paypal.client_id') }}&currency=EUR"></script>
-    @endif
+    {{-- Solo incluimos y ejecutamos el script de PayPal si estamos en modo PayPal --}}
+    @if (env('PAYMENT_GATEWAY') == 'paypal' && config('services.paypal.client_id') && config('services.paypal.secret'))
+        {{-- 1. Incluimos el SDK de PayPal con nuestro Client ID --}}
+        <script src="https://www.paypal.com/sdk/js?client-id={{ config('services.paypal.client_id') }}&currency=EUR&enable-funding=card"></script>
 
-    <script>
-        // 2. Renderizamos los botones de PayPal
-        paypal.Buttons({
-            // 3. createOrder: Se ejecuta cuando el usuario hace clic en el botón de PayPal.
-            //    Define los detalles de la transacción que se va a crear.
-            createOrder: function(data, actions) {
-                return actions.order.create({
-                    purchase_units: [{
-                        amount: {
-                            // Le pasamos el total de la orden desde nuestro componente Livewire
-                            value: "{{ $order->total }}"
+        <script>
+            // 2. Renderizamos los botones de PayPal
+            paypal.Buttons({
+                // 3. createOrder: Se ejecuta cuando el usuario hace clic en el botón de PayPal.
+                //    Ahora llama a nuestro backend para crear la orden de forma segura.
+                createOrder: (data, actions) => {
+                    return fetch("{{ route('payment.create', $order) }}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                        },
+                    }).then((res) => {
+                        if (!res.ok) {
+                            // Si el servidor devuelve un error, lo mostramos y rechazamos la promesa
+                            return res.json().then(errorData => {
+                                console.error("Error al crear la orden en el servidor:", errorData);
+                                throw new Error(errorData.error || 'Error del servidor');
+                            });
                         }
-                    }]
-                });
-            },
+                        return res.json();
+                    }).then((orderData) => {
+                        // Devolvemos el ID de la orden que nos dio nuestro backend
+                        return orderData.id;
+                    });
+                },
 
-            // 4. onApprove: Se ejecuta cuando el usuario aprueba el pago en la ventana de PayPal.
-            onApprove: function(data, actions) {
-                return actions.order.capture().then(function(details) {
-                    // ¡EL PUENTE FINAL!
-                    // Cuando el pago es capturado con éxito, llamamos al método 'payOrder'
-                    // de nuestro componente Livewire en el backend, pasándole el ID de la transacción.
-                    // Usamos Livewire.find() para obtener la instancia del componente en la página.
-                    Livewire.find('{{ $this->getId() }}').call('payOrder', details.id);
-                });
-            },
+                // 4. onApprove: Se ejecuta cuando el usuario aprueba el pago en la ventana de PayPal.
+                //    Ahora llama a nuestro backend para capturar el pago.
+                onApprove: (data, actions) => {
+                    return fetch("{{ route('payment.capture', $order) }}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                        },
+                        body: JSON.stringify({
+                            orderID: data.orderID
+                        })
+                    }).then((res) => res.json()).then((orderData) => {
+                        // El backend ya procesó todo. Solo redirigimos a la página de éxito.
+                        window.location.href = "{{ route('orders.success', $order) }}";
+                    });
+                },
 
-            // 5. onCancel: Se ejecuta si el usuario cierra la ventana de PayPal o cancela.
-            onCancel: function(data) {
-                // Simplemente redirigimos a la página de detalles de la orden.
-                window.location.href = "{{ route('orders.show', $order) }}";
-            }
-        }).render('#paypal-button-container'); // Le decimos dónde dibujar los botones
-    </script>
+                // 5. onCancel: Se ejecuta si el usuario cierra la ventana de PayPal o cancela.
+                onCancel: (data) => {
+                    // Simplemente redirigimos a la página de detalles de la orden.
+                    window.location.href = "{{ route('orders.show', $order) }}";
+                }
+            }).render('#paypal-button-container'); // Le decimos dónde dibujar los botones
+        </script>
+    @endif
 @endpush

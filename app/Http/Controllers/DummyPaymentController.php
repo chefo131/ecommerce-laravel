@@ -3,30 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Str;
- 
+use App\Livewire\PaymentOrder;
+use Illuminate\Http\Request;
+
 class DummyPaymentController extends Controller
 {
     /**
-     * Simula la captura de un pago exitoso.
+     * Simula la captura de un pago y procesa la orden.
      *
-     * Este método actúa como un puente. Recibe la orden, instancia el
-     * PaymentController real y llama al método que procesa una orden
-     * exitosa, devolviendo una respuesta JSON que el script del frontend espera.
-     *
-     * @param Order $order
-     * @return JsonResponse
+     * @param  \App\Models\Order  $order
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function capture(Order $order): JsonResponse
+    public function capture(Order $order)
     {
-        // Instanciamos el controlador de pago real para reutilizar su lógica.
-        $paymentController = new PaymentController(); // Esto ahora funciona porque el método es public
+        // Instanciamos el componente de Livewire para usar su lógica de pago.
+        // Esto centraliza la lógica de finalización del pedido.
+        $paymentOrderComponent = new PaymentOrder();
+        $paymentOrderComponent->order = $order;
 
-        // Llamamos al método que hace todo el trabajo: cambiar estado, descontar stock, etc.
-        $paymentController->processSuccessfulOrder($order, 'dummy_tx_' . Str::random(17)); // Corrección aquí
-
-        // Devolvemos la respuesta de éxito que el script de payment.blade.php está esperando.
-        return response()->json(['success' => true]);
+        // Llamamos al método que finaliza la orden, pasándole un ID de transacción ficticio.
+        return $paymentOrderComponent->payOrder('dummy_payment_id_' . uniqid());
     }
 }

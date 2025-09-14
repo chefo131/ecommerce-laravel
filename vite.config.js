@@ -1,27 +1,15 @@
-import {
-    defineConfig
-} from 'vite';
+import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
-import tailwindcss from "@tailwindcss/vite";
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
     plugins: [
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.js'],
-            refresh: [`resources/views/**/*`],
+            // "true" es más simple y efectivo para refrescar vistas de Blade y componentes de Livewire
+            refresh: true,
         }),
-        tailwindcss({
-            config: { // Añadimos un objeto config
-              content: [
-                "./resources/**/*.blade.php",
-                "./resources/**/*.js",
-                "./resources/**/*.vue", // Si usas Vue
-                "./app/Livewire/**/*.php",
-              ],
-            },
-          }),
+        // Vite tomará la configuración automáticamente de tu archivo tailwind.config.js
+        tailwindcss(),
     ],
-    server: {
-        cors: true,
-    },
 });

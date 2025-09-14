@@ -1,2 +1,27 @@
-*
-!.gitignore
+/.vscode/
+/node_modules/
+/public/build/
+/public/hot
+/public/storage
+/storage/*.key
+/storage/app/
+/storage/framework/
+/storage/logs/
+/vendor/
+.env
+.env.backup
+.env.production
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+composer.lock
+npm-debug.log
+yarn-error.log
+
+# Archivos generados por IDE Helper
+/.phpstorm.meta.php
+/_ide_helper.php
+/_ide_helper_models.php
+
+# Archivos temporales de Media Library
+/storage/media-library/temp/

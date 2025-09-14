@@ -15,25 +15,23 @@ class PaymentController extends Controller
     public function createPayment(Request $request, Order $order)
     {
         $provider = new PayPalClient;
-        $provider->setApiCredentials(config('paypal'));
-        $token = $provider->getAccessToken();
-        $provider->setAccessToken($token);
+        $provider->getAccessToken(); // Esto ya configura las credenciales y el token internamente
 
         try {
             $response = $provider->createOrder([
                 "intent" => "CAPTURE",
                 "application_context" => [
                     "brand_name" => config('app.name', 'Laravel'),
-                    "shipping_preference" => "NO_SHIPPING",
-                    "cancel_url" => route('orders.show', $order),
-                    "return_url" => route('payment.capture', $order),
+                    "shipping_preference" => "NO_SHIPPING", // No necesitamos la dirección de envío de PayPal
+                    // "cancel_url" => route('orders.show', $order), // ¡ELIMINADO! Esto lo gestiona el JS de la vista.
                 ],
                 "purchase_units" => [
                     [
                         "reference_id" => $order->id,
                         "amount" => [
                             "currency_code" => "EUR",
-                            "value" => number_format($order->total, 2, '.', '')
+                            // ¡LA SOLUCIÓN! Forzamos el formato a "1500.50" sin comas de miles.
+                            "value" => number_format($order->total, 2, '.', '') 
 
                         ]
                     ]
@@ -43,15 +41,21 @@ class PaymentController extends Controller
             if (isset($response['id']) && $response['id'] != null) {
                 return response()->json(['id' => $response['id']]);
             } else {
-                Log::error('Srmklive PayPal create order failed.', ['response' => $response]);
+                // Mejoramos el log para capturar toda la respuesta de PayPal en caso de error
+                Log::error('PayPal API Error: No se pudo crear la orden.', [
+                    'order_id' => $order->id,
+                    'paypal_response' => $response
+                ]);
                 return response()->json(['error' => 'No se pudo crear la orden en PayPal.'], 500);
             }
         } catch (\Throwable $e) {
-            Log::error('Srmklive PayPal Exception on createPayment.', [
+            // Log más detallado para excepciones
+            Log::error('Excepción al crear orden en PayPal.', [
+                'order_id' => $order->id,
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            return response()->json(['error' => 'Ocurrió un error inesperado con PayPal.'], 500);
+            return response()->json(['error' => 'Ocurrió un error inesperado al contactar con PayPal.'], 500);
         }
     }
 
@@ -59,71 +63,31 @@ class PaymentController extends Controller
     {
         $provider = new PayPalClient;
         $provider->getAccessToken();
-        $response = $provider->capturePaymentOrder($request->token);
+        
+        try {
+            // Usamos el 'orderID' que nos envía el JavaScript.
+            $response = $provider->capturePaymentOrder($request->orderID);
 
-        if (isset($response['status']) && $response['status'] == 'COMPLETED') {
-            // El pago se ha completado en PayPal
-            $transactionId = $response['purchase_units'][0]['payments']['captures'][0]['id'];
-            $this->processSuccessfulOrder($order, $transactionId);
+            if (isset($response['status']) && $response['status'] == 'COMPLETED') {
+                // El pago se ha completado en PayPal
+                $transactionId = $response['purchase_units'][0]['payments']['captures'][0]['id'];
 
-            return response()->json(['success' => true]);
+                // Llamamos al método del componente Livewire para centralizar la lógica.
+                app(\App\Livewire\PaymentOrder::class)->payOrder($order, $transactionId);
+
+                return response()->json(['success' => true]);
+            }
+        } catch (\Throwable $e) {
+            Log::error('Excepción al capturar pago en PayPal.', [
+                'order_id' => $order->id,
+                'paypal_order_id' => $request->orderID,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['success' => false, 'message' => 'Ocurrió un error inesperado al procesar el pago.'], 500);
         }
 
         // Si el pago falla o no se completa
         return response()->json(['success' => false, 'message' => 'El pago no pudo ser procesado por PayPal.'], 400);
-    }
-
-    /**
-     * Procesa una orden después de un pago exitoso.
-     * Este método centraliza la lógica post-pago.
-     *
-     * @param Order $order
-     * @return void
-     */
-    public function processSuccessfulOrder(Order $order, string $transactionId)
-    {
-        // 1. Actualizar el estado de la orden
-        $order->status = Order::PAGADO;
-        $order->transaction_id = $transactionId; // Guardamos el ID de la transacción
-        $order->save(); // Guardamos ambos cambios
-
-        // 2. Descontar el stock de los productos
-        // $order->content ya es un objeto/array gracias al "casting" en el modelo Order.
-        // No necesitamos usar json_decode, que es lo que estaba causando el error.
-        $items = $order->content;
-
-        // 2. Asociar productos y descontar stock
-        foreach ($items as $item) {
-            // ¡SOLUCIÓN! Asociamos los productos a la orden en la tabla pivote 'order_product'.
-            // Este paso es crucial y faltaba en el flujo de pago de PayPal, lo que hacía
-            // que la tabla pivote estuviera vacía y las reseñas no funcionaran.
-            $order->products()->attach($item->id, [
-                'quantity' => $item->qty,
-                'price' => $item->price,
-            ]);
-
-            // Buscamos el producto para acceder a sus relaciones
-            $product = Product::find($item->id);
-
-            // Lógica para descontar stock según el tipo de producto
-            if ($product) {
-                if (isset($item->options->size_id)) {
-                    // Producto con talla y color
-                    $size = $product->sizes()->where('id', $item->options->size_id)->first();
-                    if ($size) {
-                        $size->colors()->where('color_id', $item->options->color_id)->decrement('quantity', $item->qty);
-                    }
-                } elseif (isset($item->options->color_id)) {
-                    // Producto solo con color
-                    $product->colors()->where('color_id', $item->options->color_id)->decrement('quantity', $item->qty);
-                } else {
-                    // Producto sin variantes
-                    $product->decrement('quantity', $item->qty);
-                }
-            }
-        }
-
-        // 3. Vaciar el carrito de compras
-        Cart::destroy();
     }
 }

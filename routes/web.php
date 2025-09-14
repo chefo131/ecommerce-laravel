@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\welcomeController;
+use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\CategoryController;
 use App\Livewire\Admin\SubcategoryManager;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
@@ -35,7 +35,7 @@ use App\Livewire\Admin\EditUser;
 // Y se ha programado para ejecutarse automáticamente en bootstrap/app.php
 
 // Rutas aplicación web
-Route::get('/', welcomeController::class)->name('home');
+Route::get('/', WelcomeController::class)->name('home');
 
 Route::get('search', SearchController::class)->name('search');
 
