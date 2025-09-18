@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\User;
+use App\Models\Product;
 use App\Models\Order;
 use App\Policies\ProductPolicy;
 use App\Policies\OrderPolicy;
