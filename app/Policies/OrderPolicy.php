@@ -9,75 +9,56 @@ use Illuminate\Auth\Access\Response;
 class OrderPolicy
 {
     /**
-     * Determine whether the user can view any models.
+     * Permite a los administradores realizar cualquier acción, excepto pagar una orden.
+     * Para el pago, se usarán las reglas del método 'payment'.
+     */
+    public function before(User $user, string $ability): bool|null
+    {
+        if ($user->hasRole('admin') && $ability !== 'payment') {
+            return true;
+        }
+
+        // Si no es admin o la habilidad es 'payment', no intervenimos y dejamos que la política específica decida.
+        return null;
+    }
+
+    /**
+     * Determina si el usuario puede ver sus propias órdenes.
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
-     * Determine whether the user can view the model.
+     * Determina si el usuario puede ver una orden específica.
+     * Solo puede verla si es el dueño de la orden.
      */
     public function view(User $user, Order $order): bool
     {
-        // Un usuario puede ver una orden si el user_id de la orden
-        // coincide con el id del usuario autenticado.
-
+        // Un admin puede ver cualquier orden, un usuario normal solo las suyas.
+        // Esta lógica ya está cubierta por el método 'before', pero la dejamos por claridad.
         return $user->id === $order->user_id;
-   }
+    }
 
     /**
-     * Determine whether the user can pay the model.
+     * Determina si un usuario puede pagar una orden.
      */
     public function payment(User $user, Order $order): bool
     {
-        // Un usuario puede pagar una orden si:
-        // 1. Es el propietario de la orden.
-        // 2. El estado de la orden es PENDIENTE.
-        return $user->id === $order->user_id && $order->status == \App\Models\Order::PENDIENTE;
-    }
+        // REGLA DE ORO: La condición principal para que CUALQUIER usuario pueda pagar
+        // es que la orden debe estar en estado 'PENDIENTE'. Si no, nadie puede.
+        if ($order->status !== Order::PENDIENTE) {
+            return false;
+        }
 
+        // Un administrador puede pagar la orden de cualquier cliente (siempre que esté pendiente).
+        // Esta comprobación se ejecuta porque el método 'before' no interviene para la habilidad 'payment'.
+        if ($user->hasRole('admin')) {
+            return true;
+        }
 
-    /**
-     * Determine whether the user can create models.
-     */
-    public function create(User $user): bool
-    {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(User $user, Order $order): bool
-    {
-        // Permitimos actualizar si el usuario es el dueño y la orden está pendiente.
-        // Esto es crucial para que el DummyPaymentController pueda cambiar el estado.
-        return $user->id === $order->user_id && $order->status == \App\Models\Order::PENDIENTE;
-    }
-
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(User $user, Order $order): bool
-    {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, Order $order): bool
-    {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, Order $order): bool
-    {
-        return false;
+        // Un usuario normal solo puede pagar sus propias órdenes (siempre que estén pendientes).
+        return $user->id === $order->user_id;
     }
 }

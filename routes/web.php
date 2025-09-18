@@ -87,6 +87,26 @@ Route::get('dashboard', function () { // Cambiado de Route::view a Route::get pa
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
+// --- RUTA DE PRUEBA PARA EL CORREO ---
+// ¡Añade este bloque al final del fichero!
+use Illuminate\Support\Facades\Mail;
+
+Route::get('/test-mail', function () {
+    try {
+        Mail::raw('Este es un correo de prueba para verificar la configuración de Mailtrap.', function ($message) {
+            // Usa una dirección de correo real aquí, aunque con Mailtrap no se enviará realmente.
+            $message->to('test@example.com')
+                    ->subject('Prueba de Conexión Mailtrap');
+        });
+
+        return "<h1>¡Correo de prueba enviado con éxito!</h1><p>Revisa tu bandeja de entrada de Mailtrap. Si ves este mensaje, tus credenciales en el .env son CORRECTAS.</p>";
+
+    } catch (\Exception $e) {
+        // Si hay un error, lo mostramos en pantalla para poder depurarlo.
+        return "<h1>¡Error al enviar el correo!</h1><pre>" . $e->getMessage() . "</pre>";
+    }
+});
+// --- FIN DE LA RUTA DE PRUEBA ---
 
 /*
 |--------------------------------------------------------------------------

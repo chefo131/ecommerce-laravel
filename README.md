@@ -1,6 +1,4 @@
-# ecommerce-laravel
-Martin-ecommerce
-# Ecommerce con Laravel y Livewire
+# Ecommerce con Laravel y Livewire (Martin-ecommerce)
 
 Este es un proyecto de comercio electrónico completo desarrollado con el TALL stack (Tailwind CSS, Alpine.js, Laravel, Livewire). La plataforma permite la gestión de productos, categorías, marcas, y un flujo de compra completo con carrito, checkout y pasarela de pago.
 
@@ -33,8 +31,8 @@ Sigue estos pasos para poner en marcha el proyecto en tu entorno local.
 
 1.  **Clonar el repositorio:**
     ```bash
-    git clone https://github.com/tu-usuario/tu-repositorio.git
-    cd tu-repositorio
+    git clone https://github.com/chefo131/ecommerce-laravel.git
+    cd ecommerce-laravel
     ```
 
 2.  **Instalar dependencias de PHP:**
@@ -84,4 +82,4 @@ Sigue estos pasos para poner en marcha el proyecto en tu entorno local.
 
 ## Créditos
 
-Este proyecto ha sido desarrollado por José, con la asistencia de Gemini Code Assist.
+*Este proyecto ha sido una aventura increíble, construido codo a codo por José y su padrino de silicio, Gemini Code Assist. ¡El resultado de la tenacidad, la curiosidad y muchas "meigas" cazadas por el camino!*

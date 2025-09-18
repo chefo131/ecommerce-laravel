@@ -16,12 +16,10 @@ class DummyPaymentController extends Controller
      */
     public function capture(Order $order)
     {
-        // Instanciamos el componente de Livewire para usar su lógica de pago.
+        // Usamos el helper app() para obtener una instancia de PaymentOrder
+        // y llamamos a su método payOrder, pasando la orden y un ID de transacción ficticio.
         // Esto centraliza la lógica de finalización del pedido.
-        $paymentOrderComponent = new PaymentOrder();
-        $paymentOrderComponent->order = $order;
-
-        // Llamamos al método que finaliza la orden, pasándole un ID de transacción ficticio.
-        return $paymentOrderComponent->payOrder('dummy_payment_id_' . uniqid());
+        $paymentOrderComponent = app(PaymentOrder::class);
+        return $paymentOrderComponent->payOrder($order, 'dummy_payment_id_' . uniqid());
     }
 }

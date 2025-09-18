@@ -123,4 +123,14 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Pasarela de Pago por Defecto
+    |--------------------------------------------------------------------------
+    |
+    | Define qué pasarela de pago se usará en la aplicación (ej: 'paypal', 'dummy').
+    |
+    */
+    'payment_gateway' => env('PAYMENT_GATEWAY', 'dummy'),
+
 ];

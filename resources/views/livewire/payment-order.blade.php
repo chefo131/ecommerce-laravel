@@ -136,7 +136,7 @@
             <div class="mt-6">
                 {{-- Aquí irá el contenido de la pasarela de pago --}}
                 {{-- Ahora la comprobación respeta la variable de entorno PAYMENT_GATEWAY --}}
-                @if (env('PAYMENT_GATEWAY') == 'paypal' && config('services.paypal.client_id') && config('services.paypal.secret'))
+                @if (config('app.payment_gateway') == 'paypal' && config('services.paypal.client_id') && config('services.paypal.secret'))
                     <div id="paypal-button-container"></div>
                 @else
                     {{-- Pasarela de pago "Dummy" para pruebas --}}
@@ -146,11 +146,16 @@
                         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
                             Haz clic en el botón para simular un pago con éxito de forma instantánea.
                         </p>
-                        <button wire:click="payOrder()" wire:loading.attr="disabled"
-                            class="mt-4 inline-flex items-center rounded-md border border-transparent bg-lime-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-lime-700 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:ring-offset-2 disabled:opacity-50">
-                            <span wire:loading.remove wire:target="payOrder">Simular Pago</span>
-                            <span wire:loading wire:target="payOrder">Procesando...</span>
-                        </button>
+                        {{-- ¡LA SOLUCIÓN DEFINITIVA! --}}
+                        {{-- Este formulario envía la petición al controlador correcto, igual que hace PayPal. --}}
+                        {{-- Así nos aseguramos de que la orden que se procesa es la correcta. --}}
+                        <form action="{{ route('payment.dummy.capture', $order) }}" method="POST" class="mt-4">
+                            @csrf
+                            <button type="submit"
+                                class="inline-flex items-center rounded-md border border-transparent bg-lime-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-lime-700 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:ring-offset-2 disabled:opacity-50">
+                                Simular Pago
+                            </button>
+                        </form>
                     </div>
                 @endif
             </div>
@@ -161,7 +166,7 @@
 {{-- ¡AQUÍ EMPIEZA LA MAGIA! --}}
 @push('scripts')
     {{-- Solo incluimos y ejecutamos el script de PayPal si estamos en modo PayPal --}}
-    @if (env('PAYMENT_GATEWAY') == 'paypal' && config('services.paypal.client_id') && config('services.paypal.secret'))
+    @if (config('app.payment_gateway') == 'paypal' && config('services.paypal.client_id') && config('services.paypal.secret'))
         {{-- 1. Incluimos el SDK de PayPal con nuestro Client ID --}}
         <script src="https://www.paypal.com/sdk/js?client-id={{ config('services.paypal.client_id') }}&currency=EUR&enable-funding=card"></script>
 

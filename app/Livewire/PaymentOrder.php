@@ -34,25 +34,27 @@ class PaymentOrder extends Component
      *
      * @param string|null $paymentId El ID de la transacción de PayPal (opcional).
      */
-    public function payOrder(Order $order = null, $paymentId = null)
+    public function payOrder(Order $order, $paymentId = null)
     {
-        // Si no se pasa una orden, usamos la que está en la propiedad del componente.
-        // Esto mantiene la compatibilidad con el botón "dummy".
-        $orderToProcess = $order ?? $this->order;
-
         // Autorizamos que el usuario pueda pagar esta orden
-        $this->authorize('payment', $orderToProcess);
+        // Usamos la política para asegurar que el usuario es el dueño y la orden está pendiente.
+        $this->authorize('payment', $order);
 
         // 1. Asociamos los productos del carrito a la orden y descontamos el stock.
         // ESTE ES EL PASO CRUCIAL QUE FALTABA.
-        // Usamos $orderToProcess->content para asegurar que procesamos los productos guardados en la orden.
-        foreach ($orderToProcess->content as $item) {
+        // Usamos $order->content para asegurar que procesamos los productos guardados en la orden.
+        // ¡CORRECCIÓN! Nos aseguramos de que 'content' sea un array antes de iterar.
+        // Si 'content' es null (porque la orden se creó con un carrito vacío o por un error),
+        // lo tratamos como un array vacío para evitar el error "foreach() argument must be of type array|object, null given".
+        $itemsToProcess = $order->content ?? [];
+
+        foreach ($itemsToProcess as $item) {
             // ¡CORRECCIÓN! Como $this->order->content es un array (por el 'cast' en el modelo Order),
             // cada $item es un array asociativo, no un objeto. Debemos usar la sintaxis de array ($item['...'])
             // en lugar de la de objeto ($item->...). Este era el origen del error "Attempt to read property on array".
 
             // Asociamos el producto en la tabla pivote 'order_product'
-            $orderToProcess->products()->attach($item['id'], [
+            $order->products()->attach($item['id'], [
                 'quantity' => $item['qty'],
                 'price' => $item['price'],
             ]);
@@ -86,18 +88,25 @@ class PaymentOrder extends Component
         }
 
         // 2. Actualizamos el estado de la orden a 'PAGADO'
-        $orderToProcess->status = Order::PAGADO;
-        $orderToProcess->transaction_id = $paymentId; // Guardamos el ID de la transacción si existe
-        $orderToProcess->save();
+        $order->status = Order::PAGADO;
+        $order->transaction_id = $paymentId; // Guardamos el ID de la transacción si existe
+        $order->save();
 
         // ¡Enviamos el email de confirmación al usuario!
-        Mail::to($orderToProcess->user)->send(new OrderConfirmation($orderToProcess));
+        try {
+            Mail::to($order->user)->send(new OrderConfirmation($order));
+        } catch (\Exception $e) {
+            // Si el envío de email falla, registramos el error en los logs pero no detenemos el proceso.
+            // El usuario ya ha pagado y la orden está registrada. Lo importante es que la compra se complete.
+            // El error "Invalid Credentials" de Mailtrap se verá aquí, pero la app seguirá funcionando.
+            Log::error("Error al enviar email de confirmación para la orden {$order->id}: " . $e->getMessage());
+        }
 
         // 3. Vaciamos el carrito de compras
         Cart::destroy();
 
         // 4. Redirigimos a la página de éxito
-        return redirect()->route('orders.success', $orderToProcess);
+        return redirect()->route('orders.success', $order);
     }
 
     public function render()
