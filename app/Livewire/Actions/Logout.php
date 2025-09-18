@@ -12,7 +12,7 @@ class Logout
      * Log the user out of the application.
 
      */
-    public function __invoke(): \Illuminate\Http\RedirectResponse
+    public function __invoke()
     {
         // 1. Disparamos nuestro evento personalizado ANTES de cerrar la sesión.
         // El listener 'StoreCartOnLogout' necesita al usuario autenticado
